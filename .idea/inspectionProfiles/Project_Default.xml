@@ -1,0 +1,19 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="cat.*" />
+          <option value="homework_2.page.addressbook_page.BasePage" />
+          <option value="homework_2.page.message_page.BasePage" />
+          <option value="homework_2.page.message_page.AddressbookPage" />
+          <option value="homework_2.page.search_page.BasePage" />
+          <option value="homework_2.testcase.test_contact.App" />
+          <option value="homework_2.page.addressbook_page.Search_page" />
+          <option value="homework_2.page.app.MessagePage" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
