@@ -30,7 +30,7 @@ class TestCase(db.Model):
         return '<name %r>' % self.name
 
     def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self._table_.colums}
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class TestSuite(db.Model):
@@ -49,18 +49,21 @@ class TestSuite(db.Model):
         return '<name %r>' % self.name
 
     def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self._table_.colums}
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class SuiteService(Resource):
     def get(self):
         app.logger.info(request.args)
-        testsuite=TestSuite.query.filter_by(id=request.args['id']).first()
-        return {
-            'name': testsuite.name,
-            'description': testsuite.description,
-            'testcaselist': testsuite.testcaselist
-        }
+        testsuite = [item.as_dict() for item in TestSuite.query.all()]
+        return testsuite
+        # testsuite=TestSuite.query.filter_by(id=request.args['id']).first()
+        # return {
+        #     'name': testsuite.name,
+        #     'description': testsuite.description,
+        #     'testcaselist': testsuite.testcaselist
+        # }
+
 
     def post(self):
         app.logger.info(request.args)
@@ -120,30 +123,32 @@ class SuiteService(Resource):
 #         self['steps']=
 
 
-    def __repr__(self):
-        return '<name %r>' % self.name
-
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self._table_.colums}
+    # def __repr__(self):
+    #     return '<name %r>' % self.name
+    #
+    # def as_dict(self):
+    #     return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 class TesCaseService(Resource):
 
     def get(self):
         app.logger.info(request.args, request.json)
-        testcase = TestCase.query.filter_by(name=request.args['name']).first()
-        if testcase is None:
-            return {
-                'msg': 'name is None',
-                'size': 0
-            }
-        else:
-            return {
-                    'name': testcase.name,
-                    'description': testcase.description,
-                    'steps': testcase.steps,
-                    'size': 1
-             }
+        testcase = [item.as_dict() for item in TestCase.query.all()]
+        return testcase
+        # testcase = TestCase.query.filter_by(name=request.args['name']).first()
+        # if testcase is None:
+        #     return {
+        #         'msg': 'name is None',
+        #         'size': 0
+        #     }
+        # else:
+        #     return {
+        #             'name': testcase.name,
+        #             'description': testcase.description,
+        #             'steps': testcase.steps,
+        #             'size': 1
+        #      }
 
     def post(self):
         app.logger.info(request.args, request.json)
