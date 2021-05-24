@@ -24,11 +24,7 @@ class TestCase(db.Model):
     name = db.Column(db.String(80), unique=True, nullable=False)
     description = db.Column(db.String(120), unique=False, nullable=True)
     steps = db.Column(db.String(1024), unique=False, nullable=True)
-    '''
-    relationship：是以testcase_id为外键关联一组TestSuite
-    backref指定给TestSuite类增加了一个testcase属性，内容是以testcase_id为外键关联的Testcase。
-    '''
-    testsuite = db.relationship('TestSuite', backref='testcase', lazy=True)
+    testsuite_id = db.Column(db.Integer, db.ForeignKey('testsuite.id'), unique=False, nullable=True)
 
     def __repr__(self):
         return '<name %r>' % self.name
@@ -42,8 +38,12 @@ class TestSuite(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=False, nullable=False)
     description = db.Column(db.String(120), unique=False, nullable=True)
-    testcase_id = db.Column(db.Integer, db.ForeignKey('testcase.id'), unique=True, nullable=True)
-    testcases = db.Column(db.String(1024), unique=False, nullable=True)
+    '''
+        relationship是以testsuite.name为外键关联一组Testcase
+        backref指定给TestCase类增加了一个testsuite属性，内容是以testsuite_name为外键关联的Testcase。
+    '''
+    testcase = db.relationship('TestCase', backref='testsuite', lazy=True)
+    testcaselist = db.Column(db.String(2048), unique=False, nullable=True)
 
     def __repr__(self):
         return '<name %r>' % self.name
@@ -55,34 +55,56 @@ class TestSuite(db.Model):
 class SuiteService(Resource):
     def get(self):
         app.logger.info(request.args)
-        testsuite=TestSuite.query.filter_by(name=request.args['name']).first()
+        testsuite=TestSuite.query.filter_by(id=request.args['id']).first()
         return {
             'name': testsuite.name,
             'description': testsuite.description,
-            'testcases': testsuite.testcases
+            'testcaselist': testsuite.testcaselist
         }
 
     def post(self):
-        app.logger.info(request.args, request.json)
+        app.logger.info(request.args)
+        app.logger.info(request.json)
         if 'add' in request.args:
-            testsuite = TestSuite(**request.json)
-            testcase = TestCase.query.filter_by(id=testsuite.testcase_id).first()
-            testsuite.testcases = ';'+testsuite.testcases+f'name:{testcase.name},' \
-                                                          f'description:{testcase.description},steps:{testcase.steps}'
-            db.session.add(testsuite)
-            db.session.commit()
-        elif "update" in request.args:
-            testsuite = TestSuite.query.filter_by(name=request.json['name']).first()
+            testsuite = TestSuite()
             testsuite.name = request.json['name']
             testsuite.description = request.json['description']
-            testsuite.testcase_id = request.json['testcase_id']
-            testcase = TestCase.query.filter_by(id=testsuite.testcase_id).first()
-            testsuite.testcases = f'name:{testcase.name},description:{testcase.description},steps:{testcase.steps}'
+            for testcase_id in request.json['testcase_id'].split(','):
+                testcase = TestCase.query.filter_by(id=testcase_id).first()
+                if testsuite.testcaselist == None:
+                    testsuite.testcaselist = f'{testcase.id},{testcase.name},{testcase.description},{testcase.steps};'
+                else:
+                    testsuite.testcaselist = testsuite.testcaselist + f'{testcase.id},{testcase.name},{testcase.description},{testcase.steps}'
+            db.session.add(testsuite)
             db.session.commit()
+            for testcase_id in request.json['testcase_id'].split(','):
+                testcase = TestCase.query.filter_by(id=testcase_id).first()
+                testcase.testsuite_id=testsuite.id
+                db.session.commit()
+        elif "update" in request.args:
+            testsuite = TestSuite.query.filter_by(id=request.json['id']).first()
+            testsuite.name = request.json['name']
+            testsuite.description = request.json['description']
+            for testcase_id in testsuite.testcaselist.split(';'):
+                testcase=TestCase.query.filter_by(id=testcase_id[0]).first()
+                testcase.testsuite_id = None
+                db.session.commit()
+            testsuite.testcaselist = None
+            for testcase_id in request.json['testcase_id'].split(','):
+                testcase = TestCase.query.filter_by(id=testcase_id).first()
+                if testsuite.testcaselist == None:
+                    testsuite.testcaselist = f'{testcase.id},{testcase.name},{testcase.description},{testcase.steps};'
+                else:
+                    testsuite.testcaselist = testsuite.testcaselist + f'{testcase.id},{testcase.name},{testcase.description},{testcase.steps}'
+            db.session.commit()
+            for testcase_id in request.json['testcase_id'].split(','):
+                testcase = TestCase.query.filter_by(id=testcase_id).first()
+                testcase.testsuite_id = testsuite.id
+                db.session.commit()
 
     def delete(self):
         app.logger.info(request.args)
-        testsuite = TestSuite.query.filter_by(name=request.args['name']).first()
+        testsuite = TestSuite.query.filter_by(id=request.args['id']).first()
         db.session.delete(testsuite)
         db.session.commit()
         return {

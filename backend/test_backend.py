@@ -17,9 +17,9 @@ class TestBackend:
         requests.post('http://127.0.0.1:5000/testcase',
                       params='add',
                       json={
-                          'name': 'testcase1',
-                          'description': 'des10',
-                          'steps': ['z33', 'aaa', '131']
+                          'name': 'testcase3',
+                          'description': 'des3',
+                          'steps': ['a', 'b', 'c']
                       })
 
     def test_testcase_get(self):
@@ -117,25 +117,26 @@ class TestBackend:
                       params='add',
                       json={
                           'name': 'testsuite1',
-                          'description': 'des1',
-                          'testcase_id': 1
+                          'description': 'des2',
+                          'testcase_id': '1,2,3'
                       })
 
     def testsuite_get(self):
-       r=requests.get('http://127.0.0.1:5000/testsuite',params={'name': 'testsuite1'})
+       r=requests.get('http://127.0.0.1:5000/testsuite', params={'id': '1'})
        print(r.json())
 
     def testsuite_update(self):
         requests.post('http://127.0.0.1:5000/testsuite',
                       params='update',
                       json={
+                          'id': 1,
                           'name': 'testsuite1',
                           'description': 'des2',
-                          'testcase_id': 2
+                          'testcase_id': '2,3'
                       })
 
     def testsuite_delete(self):
-        r = requests.delete('http://127.0.0.1:5000/testsuite', params={'name': 'testsuite1'})
+        r = requests.delete('http://127.0.0.1:5000/testsuite', params={'id': '1'})
         print(r.json())
 
 
