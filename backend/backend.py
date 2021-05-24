@@ -39,8 +39,8 @@ class TestSuite(db.Model):
     name = db.Column(db.String(80), unique=False, nullable=False)
     description = db.Column(db.String(120), unique=False, nullable=True)
     '''
-        relationship是以testsuite.name为外键关联一组Testcase
-        backref指定给TestCase类增加了一个testsuite属性，内容是以testsuite_name为外键关联的Testcase。
+        relationship是以testsuite.id为外键关联一组Testcase
+        backref指定给TestCase类增加了一个testsuite属性，内容是以testsuite_id为外键关联的Testcase。
     '''
     testcase = db.relationship('TestCase', backref='testsuite', lazy=True)
     testcaselist = db.Column(db.String(2048), unique=False, nullable=True)
